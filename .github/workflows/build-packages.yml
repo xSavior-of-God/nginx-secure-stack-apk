@@ -30,7 +30,7 @@ jobs:
         run: chmod +x *.sh
 
       - name: Build packages
-        run: ./build.sh
+        run: bash ./build.sh
 
       - name: Cleanup signing key
         if: always()

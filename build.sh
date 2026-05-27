@@ -23,7 +23,7 @@ set -eo pipefail
 CONFIG="versions.yml"
 
 read_ver() {
-    sed -n "/^  $1:/,/^  [a-z]/{s/.*version: \"\(.*\)\"/\1/p;}" "$CONFIG" | head -1
+    sed -n "/^  $1:/,/^  [a-z]/{/version:/{s/.*version: \"\(.*\)\"/\1/p;q;}}" "$CONFIG"
 }
 
 ALPINE=$(sed -n 's/^alpine: "\(.*\)"/\1/p' "$CONFIG")
@@ -45,7 +45,7 @@ GEOIP2_VER=$(read_ver geoip2)
 HEADERS_MORE_VER=$(read_ver headers-more)
 OWASP_CRS_VER=$(read_ver owasp-crs)
 GEOIP_DB_VER=$(read_ver geoip-db)
-GEOIP_DB_MONTH=$(sed -n '/^  geoip-db:/,/^  [a-z]/{s/.*month: "\(.*\)"/\1/p;}' "$CONFIG" | head -1)
+GEOIP_DB_MONTH=$(sed -n '/^  geoip-db:/,/^  [a-z]/{/month:/{s/.*month: "\(.*\)"/\1/p;q;}}' "$CONFIG")
 
 echo "=== nginx-secure-stack-apk: Building APK packages (Alpine ${ALPINE}) ==="
 
