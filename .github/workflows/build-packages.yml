@@ -1,0 +1,48 @@
+name: Build Alpine APK Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate signing key secret
+        run: |
+          if [ -z "${{ secrets.APK_PRIVATE_KEY }}" ]; then
+            echo "ERROR: APK_PRIVATE_KEY secret not configured"
+            exit 1
+          fi
+
+      - name: Setup signing key
+        run: |
+          echo "${{ secrets.APK_PRIVATE_KEY }}" > keys/packager.rsa
+          chmod 600 keys/packager.rsa
+
+      - name: Build packages
+        run: ./build.sh
+
+      - name: Cleanup signing key
+        if: always()
+        run: rm -f keys/packager.rsa
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-repo
+          path: public/
+
+      - name: Deploy to GitHub Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          force_orphan: true

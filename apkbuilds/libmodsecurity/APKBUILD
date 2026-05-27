@@ -1,0 +1,50 @@
+# Maintainer: @@MAINTAINER@@
+pkgname=libmodsecurity
+pkgver=@@MODSEC_VER@@
+pkgrel=0
+pkgdesc="ModSecurity v3 - open source, cross platform WAF engine"
+url="https://github.com/owasp-modsecurity/ModSecurity"
+arch="x86_64"
+license="Apache-2.0"
+depends="yajl pcre2 libxml2 libcurl lmdb libmaxminddb libstdc++ libgcc"
+makedepends="
+	autoconf
+	automake
+	build-base
+	byacc
+	curl-dev
+	flex
+	git
+	libmaxminddb-dev
+	libtool
+	libxml2-dev
+	linux-headers
+	lmdb-dev
+	openssl-dev
+	pcre2-dev
+	yajl-dev
+	zlib-dev
+"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/owasp-modsecurity/ModSecurity/releases/download/v$pkgver/modsecurity-v$pkgver.tar.gz"
+builddir="$srcdir/modsecurity-v$pkgver"
+
+build() {
+	cd "$builddir"
+	./build.sh
+	./configure \
+		--prefix=/usr \
+		--disable-static \
+		--with-pcre2 \
+		--with-lmdb \
+		--with-maxmind
+	make
+}
+
+package() {
+	cd "$builddir"
+	make DESTDIR="$pkgdir" install
+	install -Dm644 unicode.mapping "$pkgdir"/etc/nginx/modsec/unicode.mapping
+}
+
+sha512sums=""

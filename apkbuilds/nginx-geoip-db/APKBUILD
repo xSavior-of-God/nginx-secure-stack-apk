@@ -1,0 +1,33 @@
+# Maintainer: @@MAINTAINER@@
+pkgname=nginx-geoip-db
+pkgver=@@GEOIP_DB_VER@@
+pkgrel=0
+pkgdesc="DB-IP GeoIP databases (Country & City Lite) for NGINX"
+url="https://db-ip.com/db/lite.php"
+arch="noarch"
+license="CC-BY-4.0"
+depends=""
+makedepends=""
+_db_month="@@GEOIP_DB_MONTH@@"
+source="
+	dbip-country-lite.mmdb.gz::https://download.db-ip.com/free/dbip-country-lite-${_db_month}.mmdb.gz
+	dbip-city-lite.mmdb.gz::https://download.db-ip.com/free/dbip-city-lite-${_db_month}.mmdb.gz
+"
+
+unpack() {
+	cd "$srcdir"
+	gzip -dk dbip-country-lite.mmdb.gz || true
+	gzip -dk dbip-city-lite.mmdb.gz || true
+}
+
+build() {
+	return 0
+}
+
+package() {
+	install -d "$pkgdir"/etc/nginx/geoip
+	install -Dm644 "$srcdir"/dbip-country-lite.mmdb "$pkgdir"/etc/nginx/geoip/dbip-country-lite.mmdb
+	install -Dm644 "$srcdir"/dbip-city-lite.mmdb "$pkgdir"/etc/nginx/geoip/dbip-city-lite.mmdb
+}
+
+sha512sums=""

@@ -1,0 +1,28 @@
+# Maintainer: @@MAINTAINER@@
+pkgname=owasp-crs
+pkgver=@@OWASP_CRS_VER@@
+pkgrel=0
+pkgdesc="OWASP ModSecurity Core Rule Set"
+url="https://github.com/coreruleset/coreruleset"
+arch="noarch"
+license="Apache-2.0"
+depends=""
+makedepends=""
+source="$pkgname-$pkgver.tar.gz::https://github.com/coreruleset/coreruleset/archive/refs/tags/v$pkgver.tar.gz"
+builddir="$srcdir/coreruleset-$pkgver"
+
+build() {
+	return 0
+}
+
+package() {
+	cd "$builddir"
+	install -d "$pkgdir"/etc/nginx/modsec/coreruleset
+	cp -R rules "$pkgdir"/etc/nginx/modsec/coreruleset/ 2>/dev/null || true
+	cp -R plugins "$pkgdir"/etc/nginx/modsec/coreruleset/ 2>/dev/null || true
+	cp crs-setup.conf.example "$pkgdir"/etc/nginx/modsec/coreruleset/ 2>/dev/null || true
+	cp CHANGES.md "$pkgdir"/etc/nginx/modsec/coreruleset/ 2>/dev/null || true
+	cp LICENSE "$pkgdir"/etc/nginx/modsec/coreruleset/ 2>/dev/null || true
+}
+
+sha512sums=""

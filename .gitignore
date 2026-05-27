@@ -1,0 +1,7 @@
+keys/packager.rsa
+keys/*.rsa
+!keys/*.rsa.pub
+public/
+packages/
+*.apk
+build.log

@@ -1,0 +1,113 @@
+# Maintainer: @@MAINTAINER@@
+pkgname=nginx-modsec
+pkgver=@@NGINX_VER@@
+pkgrel=0
+_modsec_nginx_ver=@@MODSEC_NGINX_VER@@
+_geoip2_ver=@@GEOIP2_VER@@
+_headers_more_ver=@@HEADERS_MORE_VER@@
+_brotli_commit=a71f9312c2deb28875acc7bacfdd5695a111aa53
+_brotli_lib_ver=1.1.0
+pkgdesc="NGINX with ModSecurity, GeoIP2, headers-more, and brotli dynamic modules"
+url="https://nginx.org"
+arch="x86_64"
+license="BSD-2-Clause"
+depends="libmodsecurity pcre2 openssl zlib yajl geoip-dev libmaxminddb-dev"
+makedepends="
+	brotli-dev
+	build-base
+	gd-dev
+	git
+	libmodsecurity-dev
+	libmaxminddb-dev
+	libxml2-dev
+	libxslt-dev
+	linux-headers
+	openssl-dev
+	pcre2-dev
+	perl-dev
+	perl-utils
+	zlib-dev
+"
+install="$pkgname.pre-install"
+source="
+	nginx-$pkgver.tar.gz::https://nginx.org/download/nginx-$pkgver.tar.gz
+	modsecurity-nginx-$_modsec_nginx_ver.tar.gz::https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v$_modsec_nginx_ver.tar.gz
+	ngx_http_geoip2_module-$_geoip2_ver.tar.gz::https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/$_geoip2_ver.tar.gz
+	headers-more-nginx-module-$_headers_more_ver.tar.gz::https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v$_headers_more_ver.tar.gz
+	ngx_brotli-$_brotli_commit.tar.gz::https://github.com/google/ngx_brotli/archive/$_brotli_commit.tar.gz
+	brotli-$_brotli_lib_ver.tar.gz::https://github.com/google/brotli/archive/refs/tags/v$_brotli_lib_ver.tar.gz
+"
+builddir="$srcdir/nginx-$pkgver"
+
+build() {
+	rm -rf "$srcdir"/ngx_brotli-$_brotli_commit/deps/brotli
+	ln -s "$srcdir"/brotli-$_brotli_lib_ver "$srcdir"/ngx_brotli-$_brotli_commit/deps/brotli
+
+	cd "$builddir"
+	./configure --with-compat \
+		--prefix=/etc/nginx \
+		--sbin-path=/usr/sbin/nginx \
+		--modules-path=/usr/lib/nginx/modules \
+		--conf-path=/etc/nginx/nginx.conf \
+		--error-log-path=/var/log/nginx/error.log \
+		--http-log-path=/var/log/nginx/access.log \
+		--pid-path=/run/nginx.pid \
+		--lock-path=/run/nginx.lock \
+		--http-client-body-temp-path=/var/cache/nginx/client_temp \
+		--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+		--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+		--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+		--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+		--with-perl_modules_path=/usr/lib/perl5/vendor_perl \
+		--user=nginx \
+		--group=nginx \
+		--with-file-aio \
+		--with-threads \
+		--with-http_addition_module \
+		--with-http_auth_request_module \
+		--with-http_dav_module \
+		--with-http_flv_module \
+		--with-http_gunzip_module \
+		--with-http_gzip_static_module \
+		--with-http_mp4_module \
+		--with-http_random_index_module \
+		--with-http_realip_module \
+		--with-http_secure_link_module \
+		--with-http_slice_module \
+		--with-http_ssl_module \
+		--with-http_stub_status_module \
+		--with-http_sub_module \
+		--with-http_v2_module \
+		--with-http_v3_module \
+		--with-mail \
+		--with-mail_ssl_module \
+		--with-stream \
+		--with-stream_realip_module \
+		--with-stream_ssl_module \
+		--with-stream_ssl_preread_module \
+		--with-cc-opt='-Os -fstack-clash-protection -Wformat -Werror=format-security -Wno-error=implicit-function-declaration -fno-plt -g' \
+		--with-ld-opt='-Wl,--as-needed,-O1,--sort-common -Wl,-z,pack-relative-relocs' \
+		--add-dynamic-module="$srcdir"/ModSecurity-nginx-$_modsec_nginx_ver \
+		--add-dynamic-module="$srcdir"/ngx_http_geoip2_module-$_geoip2_ver \
+		--add-dynamic-module="$srcdir"/headers-more-nginx-module-$_headers_more_ver \
+		--add-dynamic-module="$srcdir"/ngx_brotli-$_brotli_commit
+	make modules
+	make
+}
+
+package() {
+	cd "$builddir"
+	make DESTDIR="$pkgdir" install
+
+	install -d "$pkgdir"/usr/lib/nginx/modules
+	install -Dm755 objs/ngx_http_modsecurity_module.so "$pkgdir"/usr/lib/nginx/modules/ngx_http_modsecurity_module.so
+	install -Dm755 objs/ngx_http_geoip2_module.so "$pkgdir"/usr/lib/nginx/modules/ngx_http_geoip2_module.so
+	install -Dm755 objs/ngx_http_headers_more_filter_module.so "$pkgdir"/usr/lib/nginx/modules/ngx_http_headers_more_filter_module.so
+	install -Dm755 objs/ngx_http_brotli_filter_module.so "$pkgdir"/usr/lib/nginx/modules/ngx_http_brotli_filter_module.so
+	install -Dm755 objs/ngx_http_brotli_static_module.so "$pkgdir"/usr/lib/nginx/modules/ngx_http_brotli_static_module.so
+
+	install -d "$pkgdir"/var/cache/nginx/client_temp
+	install -d "$pkgdir"/var/log/nginx
+}
+
+sha512sums=""
