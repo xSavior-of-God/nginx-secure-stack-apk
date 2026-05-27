@@ -26,6 +26,9 @@ jobs:
           echo "${{ secrets.APK_PRIVATE_KEY }}" > keys/packager.rsa
           chmod 600 keys/packager.rsa
 
+      - name: Make scripts executable
+        run: chmod +x *.sh
+
       - name: Build packages
         run: ./build.sh
 
