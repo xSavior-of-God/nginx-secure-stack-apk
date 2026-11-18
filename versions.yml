@@ -5,7 +5,7 @@ alpine: "3.24.2"
 
 packages:
   nginx:
-    version: "1.30.6"
+    version: "1.30.7"
     github: "nginx/nginx"
 
   libmodsecurity:
@@ -17,7 +17,7 @@ packages:
     github: "owasp-modsecurity/ModSecurity-nginx"
 
   headers-more:
-    version: "0.40"
+    version: "0.41"
     github: "openresty/headers-more-nginx-module"
 
   owasp-crs:
@@ -29,5 +29,5 @@ packages:
     github: "leev/ngx_http_geoip2_module"
 
   geoip-db:
-    version: "2026.10"
-    month: "2026-09"
+    version: "2026.11"
+    month: "2026-10"
